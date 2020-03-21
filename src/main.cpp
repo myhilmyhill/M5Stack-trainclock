@@ -5,6 +5,7 @@
 #include "settings.hpp"
 
 static Time GLOBAL_TIME;
+static std::vector<TimeArrivalVehicle> GLOBAL_TIMETABLE;
 static const ForecasterNextVehicle* GLOBAL_FORECASTER;
 
 void setup() {
@@ -21,16 +22,15 @@ void setup() {
 
   Time::init();
 
-  std::vector<TimeArrivalVehicle> tt;
   // TODO: remove test codes
-  tt.push_back(TimeArrivalVehicle(0, 3));
-  tt.push_back(TimeArrivalVehicle(0, 5));
-  tt.push_back(TimeArrivalVehicle(22, 50));
-  tt.push_back(TimeArrivalVehicle(22, 53));
-  tt.push_back(TimeArrivalVehicle(22, 55));
-  tt.push_back(TimeArrivalVehicle(23, 0));
-  tt.push_back(TimeArrivalVehicle(24, 1));
-  GLOBAL_FORECASTER = new ForecasterNextVehicle(&tt);
+  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(0, 3));
+  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(0, 5));
+  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(22, 50));
+  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(22, 53));
+  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(22, 55));
+  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(23, 0));
+  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(24, 1));
+  GLOBAL_FORECASTER = new ForecasterNextVehicle(GLOBAL_TIMETABLE);
 }
 
 void loop(){
