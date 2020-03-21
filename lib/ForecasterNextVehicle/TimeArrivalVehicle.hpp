@@ -1,11 +1,19 @@
 #include <stdexcept>
 
 class TimeArrivalVehicle {
+private:
+  int _h;
+  int _m;
+
 public:
-  const int h;
-  const int m;
+  const int& h;
+  const int& m;
 
   TimeArrivalVehicle(int h, int m);
+  TimeArrivalVehicle(const TimeArrivalVehicle& other)
+  : TimeArrivalVehicle(other.h, other.m) {}
+
+  TimeArrivalVehicle& operator=(const TimeArrivalVehicle& rhs);
   tm toTm(const tm& date) const;
 
   bool operator==(const TimeArrivalVehicle& rhs) const {

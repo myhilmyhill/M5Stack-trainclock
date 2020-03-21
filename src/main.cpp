@@ -30,6 +30,8 @@ void setup() {
   GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(22, 55));
   GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(23, 0));
   GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(24, 1));
+  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(13, 50));
+  std::sort(GLOBAL_TIMETABLE.begin(), GLOBAL_TIMETABLE.end());
   GLOBAL_FORECASTER = new ForecasterNextVehicle(GLOBAL_TIMETABLE);
 }
 
@@ -43,7 +45,7 @@ void loop(){
   M5.Lcd.drawString(strTime, 0, 0);
 
   tm nextTrain = GLOBAL_FORECASTER->getNextTimeFrom(now);
-  snprintf(strTime, sizeof(strTime), "%02d:%02d:%02d", nextTrain.tm_hour, nextTrain.tm_min, nextTrain.tm_sec);
+  snprintf(strTime, sizeof(strTime), "%02d:%02d", nextTrain.tm_hour, nextTrain.tm_min);
   M5.Lcd.drawString(strTime, 0, 16);
 
   M5.update();
