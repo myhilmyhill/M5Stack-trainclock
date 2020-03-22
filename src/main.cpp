@@ -1,5 +1,7 @@
+#include <ArduinoJson.h>
 #include <ForecasterNextVehicle.hpp>
 #include <M5Stack.h>
+#include <ParserTimetables.hpp>
 #include <Time.hpp>
 #include <WiFi.h>
 #include "settings.hpp"
@@ -23,14 +25,24 @@ void setup() {
   Time::init();
 
   // TODO: remove test codes
-  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(0, 3));
-  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(0, 5));
-  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(22, 50));
-  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(22, 53));
-  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(22, 55));
-  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(23, 0));
-  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(24, 1));
-  GLOBAL_TIMETABLE.push_back(TimeArrivalVehicle(13, 50));
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, 
+  "{"
+    "\"timetables\":{"
+      "\"weekday\": {"
+        "\"days\": [1,2,3,4,5],"
+        "\"timetable\" :["
+          "{\"hour\":22,\"minutes\": [33,40,50,59]},"
+          "{\"hour\":24,\"minutes\": [0,10,20,30,40,50]}"
+        "]"
+      "}"
+    "}"
+  "}"
+  );
+  JsonObject obj = doc.as<JsonObject>();
+  JsonArray times = obj["timetables"]["weekday"]["timetable"];
+  GLOBAL_TIMETABLE =  ParserTimetables::MakeForecasterFromJsonString(times);
+  
   std::sort(GLOBAL_TIMETABLE.begin(), GLOBAL_TIMETABLE.end());
   GLOBAL_FORECASTER = new ForecasterNextVehicle(GLOBAL_TIMETABLE);
 }
