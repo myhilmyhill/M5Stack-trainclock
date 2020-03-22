@@ -35,20 +35,32 @@ void setup() {
           "{\"hour\":22,\"minutes\": [33,40,50,59]},"
           "{\"hour\":24,\"minutes\": [0,10,20,30,40,50]}"
         "]"
+      "},"
+      "\"holiday\": {"
+        "\"days\": [0,6],"
+        "\"timetable\" :["
+          "{\"hour\":2,\"minutes\": [33,40,50,59]},"
+          "{\"hour\":4,\"minutes\": [0,10,20,30,40,50]}"
+        "]"
       "}"
     "}"
   "}"
   );
-  JsonObject obj = doc.as<JsonObject>();
-  JsonArray times = obj["timetables"]["weekday"]["timetable"];
+  JsonObject timetables = doc.as<JsonObject>()["timetables"].as<JsonObject>();
+
+  tm now = GLOBAL_TIME.getTime(500);
+  JsonString key = ParserTimetables::GetKeyTimetable(timetables, now.tm_wday);
+  JsonArray times = timetables[key]["timetable"];
+
   GLOBAL_TIMETABLE =  ParserTimetables::MakeForecasterFromJsonString(times);
-  
   std::sort(GLOBAL_TIMETABLE.begin(), GLOBAL_TIMETABLE.end());
-  GLOBAL_FORECASTER = new ForecasterNextVehicle(GLOBAL_TIMETABLE);
+  GLOBAL_FORECASTER = new ForecasterNextVehicle(GLOBAL_TIMETABLE, now);
 }
 
 void loop(){
   if (!Time::getIsInited()) return;
+
+  // TODO: add reloading at changing date
 
   tm now = GLOBAL_TIME.getTime(500);
   static char strTime[] = "00:00:00";
