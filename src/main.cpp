@@ -1,5 +1,6 @@
 #include <ArduinoJson.h>
 #include <ForecasterNextVehicle.hpp>
+#include <HTTPClient.h>
 #include <M5Stack.h>
 #include <ParserTimetables.hpp>
 #include <Time.hpp>
@@ -9,6 +10,27 @@
 static Time GLOBAL_TIME;
 static std::vector<TimeArrivalVehicle> GLOBAL_TIMETABLE;
 static const ForecasterNextVehicle* GLOBAL_FORECASTER;
+
+void setTimetable() {
+  static HTTPClient http;
+  if (!http.connected()) {
+    http.begin(SETTINGS_ADDRESS_TIMETABLE_JSON);
+  }
+
+  if (http.GET() < 0) return;
+
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, http.getString());
+  JsonObject timetables = doc.as<JsonObject>()["timetables"].as<JsonObject>();
+
+  tm now = GLOBAL_TIME.getTime(500);
+  JsonString key = ParserTimetables::GetKeyTimetable(timetables, now.tm_wday);
+  JsonArray times = timetables[key]["timetable"];
+
+  GLOBAL_TIMETABLE =  ParserTimetables::MakeForecasterFromJsonString(times);
+  std::sort(GLOBAL_TIMETABLE.begin(), GLOBAL_TIMETABLE.end());
+  GLOBAL_FORECASTER = new ForecasterNextVehicle(GLOBAL_TIMETABLE, now);
+}
 
 void setup() {
   M5.begin();
@@ -23,38 +45,7 @@ void setup() {
   }
 
   Time::init();
-
-  // TODO: remove test codes
-  DynamicJsonDocument doc(1024);
-  deserializeJson(doc, 
-  "{"
-    "\"timetables\":{"
-      "\"weekday\": {"
-        "\"days\": [1,2,3,4,5],"
-        "\"timetable\" :["
-          "{\"hour\":22,\"minutes\": [33,40,50,59]},"
-          "{\"hour\":24,\"minutes\": [0,10,20,30,40,50]}"
-        "]"
-      "},"
-      "\"holiday\": {"
-        "\"days\": [0,6],"
-        "\"timetable\" :["
-          "{\"hour\":2,\"minutes\": [33,40,50,59]},"
-          "{\"hour\":4,\"minutes\": [0,10,20,30,40,50]}"
-        "]"
-      "}"
-    "}"
-  "}"
-  );
-  JsonObject timetables = doc.as<JsonObject>()["timetables"].as<JsonObject>();
-
-  tm now = GLOBAL_TIME.getTime(500);
-  JsonString key = ParserTimetables::GetKeyTimetable(timetables, now.tm_wday);
-  JsonArray times = timetables[key]["timetable"];
-
-  GLOBAL_TIMETABLE =  ParserTimetables::MakeForecasterFromJsonString(times);
-  std::sort(GLOBAL_TIMETABLE.begin(), GLOBAL_TIMETABLE.end());
-  GLOBAL_FORECASTER = new ForecasterNextVehicle(GLOBAL_TIMETABLE, now);
+  setTimetable();
 }
 
 void loop(){
@@ -68,9 +59,11 @@ void loop(){
   snprintf(strTime, sizeof(strTime), "%02d:%02d:%02d", now.tm_hour, now.tm_min, now.tm_sec);
   M5.Lcd.drawString(strTime, 0, 0);
 
-  tm nextTrain = GLOBAL_FORECASTER->getNextTimeFrom(now);
-  snprintf(strTime, sizeof(strTime), "%02d:%02d", nextTrain.tm_hour, nextTrain.tm_min);
-  M5.Lcd.drawString(strTime, 0, 16);
+  if (GLOBAL_FORECASTER != nullptr) {
+    tm nextTrain = GLOBAL_FORECASTER->getNextTimeFrom(now);
+    snprintf(strTime, sizeof(strTime), "%02d:%02d", nextTrain.tm_hour, nextTrain.tm_min);
+    M5.Lcd.drawString(strTime, 0, 16);  
+  }
 
   M5.update();
   delay(250);
