@@ -1,14 +1,15 @@
 #ifdef UNIT_TEST
 
 #include <Arduino.h>
-#include <unity.h>
 #include <ArduinoJson.h>
+#include <unity.h>
+
+#include <ParserTimetables.hpp>
 #include <iomanip>
 #include <sstream>
 #include <vector>
-#include <ParserTimetables.hpp>
 
-static const char *json =
+static const char* json =
     "{"
     "  \"timetables\":{"
     "    \"weekday\": {"
@@ -29,8 +30,7 @@ static const char *json =
     "}";
 static const size_t jsonSize = 1024;
 
-void parses()
-{
+void parses() {
   DynamicJsonDocument doc(jsonSize);
   deserializeJson(doc, json);
   JsonObject object = doc.as<JsonObject>();
@@ -41,8 +41,10 @@ void parses()
   TEST_ASSERT_NOT_NULL(&jsonWeekday);
   TEST_ASSERT_NOT_NULL(&jsonHoliday);
 
-  std::vector<TimeArrivalVehicle> weekday = ParserTimetables::MakeForecasterFromJsonString(jsonWeekday);
-  std::vector<TimeArrivalVehicle> holiday = ParserTimetables::MakeForecasterFromJsonString(jsonHoliday);
+  std::vector<TimeArrivalVehicle> weekday =
+      ParserTimetables::makeTimetable(jsonWeekday);
+  std::vector<TimeArrivalVehicle> holiday =
+      ParserTimetables::makeTimetable(jsonHoliday);
   TEST_ASSERT_NOT_NULL(&weekday);
   TEST_ASSERT_NOT_NULL(&holiday);
   TEST_ASSERT_EQUAL_INT(22, weekday.front().h);
@@ -55,8 +57,7 @@ void parses()
   TEST_ASSERT_EQUAL_INT(50, holiday.back().m);
 }
 
-void gets_key_from_date()
-{
+void gets_key_from_date() {
   DynamicJsonDocument doc(jsonSize);
   deserializeJson(doc, json);
   const JsonObject timetables = doc.as<JsonObject>()["timetables"];
@@ -65,7 +66,7 @@ void gets_key_from_date()
   // Weekday
   {
     tm dateMon;
-    std::istringstream ssMon("2020-03-27 12:34:56"); // Friday
+    std::istringstream ssMon("2020-03-27 12:34:56");  // Friday
     ssMon >> std::get_time(&dateMon, "%Y-%m-%d %H:%M:%S");
     mktime(&dateMon);
     TEST_ASSERT_EQUAL_INT(5, dateMon.tm_wday);
@@ -76,7 +77,7 @@ void gets_key_from_date()
   // Holiday
   {
     tm dateSat;
-    std::istringstream ssSat("2020-03-28 12:34:56"); // Saturday
+    std::istringstream ssSat("2020-03-28 12:34:56");  // Saturday
     ssSat >> std::get_time(&dateSat, "%Y-%m-%d %H:%M:%S");
     mktime(&dateSat);
     TEST_ASSERT_EQUAL_INT(6, dateSat.tm_wday);
@@ -86,8 +87,7 @@ void gets_key_from_date()
   }
 }
 
-void setup()
-{
+void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
   delay(2000);
@@ -98,8 +98,7 @@ void setup()
   UNITY_END();
 }
 
-void loop()
-{
+void loop() {
   // Do nothing
 }
 

@@ -1,11 +1,12 @@
-#include <algorithm>
-#include <stdexcept>
 #include "ForecasterNextVehicle.hpp"
 
+#include <algorithm>
+#include <stdexcept>
+
 ForecasterNextVehicle::ForecasterNextVehicle(
-  const std::vector<TimeArrivalVehicle>& timetable,
-  tm targetDate)
-: timetable(timetable), targetDate(targetDate) {
+    std::vector<TimeArrivalVehicle>&& timetable,
+    tm targetDate)
+    : targetDate(targetDate), timetable(timetable) {
   if (!std::is_sorted(timetable.cbegin(), timetable.cend())) {
     std::invalid_argument("Timetable must be sorted.");
   }
@@ -22,14 +23,12 @@ tm ForecasterNextVehicle::getNextTimeFrom(const tm& currentTm) const {
 }
 
 bool ForecasterNextVehicle::isInService(tm current) const {
-  current.tm_hour = 0;
-  current.tm_min = 0;
-  current.tm_sec = 0;
+  tm last = timetable.back().toTm(targetDate);
+  return mktime(&current) < mktime(&last);
+}
 
-  tm target = targetDate;
-  target.tm_hour = 0;
-  target.tm_min = 0;
-  target.tm_sec = 0;
-
-  return mktime(&target) < mktime(&current);
+void ForecasterNextVehicle::setTargetDate(const tm& current) {
+  if (!isInService(current)) {
+    targetDate = current;
+  }
 }
