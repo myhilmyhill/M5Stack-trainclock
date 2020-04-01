@@ -17,10 +17,26 @@ ForecasterNextVehicle ParserTimetables::makeForecasterInitial(
   if (GetKeyTimetable(timetables, current.tm_wday) ==
       GetKeyTimetable(timetables, forecasterYesterday.getTargetDateWday())) {
     forecasterYesterday.setTargetDate(current);
-    return forecasterYesterday;
+    if (forecasterYesterday.isInService(current)) {
+      return forecasterYesterday;
+    } else {
+      tm next = current;
+      next.tm_mday += 1;
+      mktime(&next);
+      return makeForecaster(timetables, next);
+    }
   }
 
-  return makeForecaster(timetables, current);
+  // TODO: remove duplicated codes
+  auto forecaster = makeForecaster(timetables, current);
+  if (forecaster.isInService(current)) {
+    return forecaster;
+  } else {
+    tm next = current;
+    next.tm_mday += 1;
+    mktime(&next);
+    return makeForecaster(timetables, next);
+  }
 }
 
 void ParserTimetables::makeForecasterCurrent(

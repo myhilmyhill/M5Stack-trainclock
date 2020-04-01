@@ -12,14 +12,15 @@ ForecasterNextVehicle::ForecasterNextVehicle(
   }
 }
 
-tm ForecasterNextVehicle::getNextTimeFrom(const tm& currentTm) const {
-  const TimeArrivalVehicle current(currentTm.tm_hour, currentTm.tm_min);
-  for (auto& item : timetable) {
-    if (current < item) {
-      return item.toTm(currentTm);
+tm ForecasterNextVehicle::getNextTimeFrom(tm current) const {
+  const time_t currentTime = mktime(&current);
+  for (const auto& item : timetable) {
+    tm time = item.toTm(targetDate);
+    if (currentTime < mktime(&time)) {
+      return item.toTm(current);
     }
   }
-  return timetable.front().toTm(currentTm);
+  return timetable.front().toTm(current);
 }
 
 bool ForecasterNextVehicle::isInService(tm current) const {

@@ -13,7 +13,7 @@ class ForecasterNextVehicle {
  public:
   ForecasterNextVehicle(std::vector<TimeArrivalVehicle>&& timetable,
                         tm targetDate);
-  tm getNextTimeFrom(const tm& currentTm) const;
+  tm getNextTimeFrom(tm current) const;
   bool isInService(tm current) const;
   int getTargetDateWday() const { return targetDate.tm_wday; };
   void setTargetDate(const tm& current);
